@@ -2,6 +2,7 @@ import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
+import html
 import json
 from pathlib import Path
 
@@ -30,65 +31,186 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-:root { --green:#216b4b; --deep:#123c2b; --mint:#e9f5ed; --ink:#17251e; --muted:#68766e; }
-html, body, [class*="css"] { font-family:'DM Sans',sans-serif; }
-.stApp { background:linear-gradient(180deg,#f5faf6 0%,#ffffff 42%); color:var(--ink); }
-.block-container { max-width:1180px; padding-top:2rem; padding-bottom:3rem; }
-[data-testid="stSidebar"] { background:#f4f7f3 !important; border-right:1px solid #dce9df; }
-/* Sidebar: force readable contrast across Streamlit's nested elements/themes. */
-[data-testid="stSidebar"] *, [data-testid="stSidebar"] p,
-[data-testid="stSidebar"] label, [data-testid="stSidebar"] span,
-[data-testid="stSidebar"] div, [data-testid="stSidebar"] li,
-[data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] .stCaption {
-  color:#20352a !important;
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap');
+
+:root {
+  --paper:#f2f5f1;
+  --surface:#ffffff;
+  --ink:#0f2a1d;
+  --ink-2:#3d5446;
+  --muted:#6b7d72;
+  --line:#dbe4dc;
+  --forest:#12281d;
+  --leaf:#2c7a4f;
+  --leaf-soft:#e3f0e7;
+  --amber:#b7791f;
+  --amber-soft:#fbf0d9;
+  --radius:14px;
 }
-[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3, [data-testid="stSidebar"] strong {
-  color:#123c2b !important;
-}
+
+html, body, [class*="css"] { font-family:'Figtree',system-ui,sans-serif; }
+.stApp { background:var(--paper); color:var(--ink); }
+.block-container { max-width:1200px; padding-top:1.6rem; padding-bottom:3rem; }
+footer { visibility:hidden; }
+hr { border-color:var(--line) !important; }
+[data-testid="stHeader"] { background:transparent !important; }
+[data-testid="stAppViewContainer"], body { color:var(--ink); }
+[data-testid="stMarkdownContainer"] p { color:var(--ink-2); }
+
+/* ---------- Sidebar ---------- */
+[data-testid="stSidebar"] { background:var(--forest) !important; border-right:0; }
+[data-testid="stSidebar"] * { color:#d6e5db !important; }
+[data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] strong { color:#ffffff !important; font-weight:600; }
+[data-testid="stSidebar"] h2 { font-family:'Fraunces',serif; font-size:1.7rem; letter-spacing:-.01em; }
+[data-testid="stSidebar"] hr { border-color:rgba(255,255,255,.12) !important; }
 [data-testid="stSidebar"] code {
-  color:#ffffff !important; background:#123c2b !important;
+  background:rgba(255,255,255,.12) !important; color:#ffffff !important;
+  border-radius:6px; padding:.1rem .4rem;
 }
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color:#9fb8a8 !important; }
 [data-testid="stSidebar"] [data-testid="stExpander"] {
-  background:#ffffff !important; border:1px solid #dce9df !important;
-  border-radius:12px !important;
+  background:rgba(255,255,255,.05) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  border-radius:var(--radius) !important;
 }
-[data-testid="stSidebar"] [data-testid="stToggle"] label,
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
-  color:#20352a !important;
+[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover { background:rgba(255,255,255,.06); }
+[data-testid="stSidebar"] [data-testid="stExpander"] p { font-size:.88rem; margin-bottom:.15rem; }
+
+/* ---------- Masthead ---------- */
+.masthead {
+  position:relative; overflow:hidden;
+  background:var(--forest); color:#fff;
+  border-radius:22px; padding:2.6rem 2.8rem 2.4rem; margin-bottom:1.8rem;
 }
-[data-testid="stHeader"] { background:rgba(255,255,255,.94) !important; }
-[data-testid="stToolbar"] { right:1rem; }
-.hero { padding:2.2rem 2.3rem; border-radius:26px; color:white; background:linear-gradient(125deg,#123c2b 0%,#216b4b 65%,#39865e 100%); box-shadow:0 16px 45px rgba(20,75,48,.14); margin-bottom:1.3rem; }
-.eyebrow { text-transform:uppercase; letter-spacing:.14em; font-size:.74rem; font-weight:700; color:#c3e6ce; }
-.hero h1 { font-family:'Manrope',sans-serif; color:white; font-size:clamp(2.1rem,4vw,3.3rem); line-height:1.08; letter-spacing:-.04em; margin:.55rem 0 .85rem; }
-.hero p { color:#e1f0e5; max-width:700px; font-size:1.04rem; line-height:1.7; margin:0; }
-.pill { display:inline-block; border:1px solid rgba(255,255,255,.28); border-radius:99px; padding:.35rem .7rem; margin-top:1.2rem; font-size:.78rem; color:#f0faf2; }
-.section-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:1.2rem; margin:.5rem 0 .25rem; }
-.subtle { color:#68766e; font-size:.93rem; line-height:1.6; }
-.panel { background:white; border:1px solid #e1ebe3; border-radius:20px; padding:1.25rem 1.35rem; box-shadow:0 6px 24px rgba(24,60,39,.045); }
-.result-label { color:#607268; font-size:.78rem; text-transform:uppercase; letter-spacing:.09em; font-weight:700; }
-.result-name { font-family:'Manrope',sans-serif; color:#174a32; font-size:1.45rem; font-weight:800; line-height:1.25; margin:.45rem 0; }
-.confidence { font-family:'Manrope',sans-serif; font-size:2rem; font-weight:800; color:#216b4b; }
-.small-note { color:#6d7b72; font-size:.82rem; line-height:1.5; }
-footer {visibility:hidden;}
-[data-testid="stMetric"] { background:white; border:1px solid #e1ebe3; border-radius:16px; padding:1rem; }
-.stButton>button { border-radius:12px; font-weight:700; }
-body, [data-testid="stAppViewContainer"] { color:#17251e !important; }
-[data-testid="stMarkdownContainer"] p, [data-testid="stCaptionContainer"] p { color:#526258; }
-[data-testid="stFileUploader"] section { background:#ffffff !important; }
-[data-testid="stFileUploader"] small, [data-testid="stFileUploader"] span { color:#263b2f !important; }
+.masthead::before {
+  content:""; position:absolute; inset:0;
+  background:
+    radial-gradient(1200px 400px at 105% -20%, rgba(80,170,115,.35), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 1px, transparent 1px 34px);
+}
+.masthead-inner { position:relative; max-width:720px; }
+.brand { display:flex; align-items:center; gap:.6rem; font-weight:600; color:#bfe0cb; font-size:.95rem; }
+.brand-mark {
+  width:30px; height:30px; border-radius:9px; background:#2c7a4f;
+  display:grid; place-items:center; font-size:1rem;
+}
+.masthead h1 {
+  font-family:'Fraunces',serif; font-weight:600; color:#fff;
+  font-size:clamp(2.2rem,4.4vw,3.5rem); line-height:1.06; letter-spacing:-.025em;
+  margin:1.3rem 0 1rem; padding:0;
+}
+.masthead p { color:#cfe3d6 !important; font-size:1.05rem; line-height:1.65; margin:0; max-width:620px; }
+.facts { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.6rem; }
+.fact {
+  border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06);
+  color:#e6f2ea; border-radius:999px; padding:.32rem .8rem; font-size:.82rem; font-weight:500;
+}
+
+/* ---------- Typography helpers ---------- */
+.section-title { font-family:'Fraunces',serif; font-weight:600; font-size:1.55rem; color:var(--ink); letter-spacing:-.01em; margin:.2rem 0 .35rem; }
+.subtle { color:var(--muted); font-size:.95rem; line-height:1.6; margin-bottom:1rem; }
+.small-note { color:var(--muted); font-size:.82rem; line-height:1.55; }
+.sub-heading { font-family:'Fraunces',serif; font-weight:600; font-size:1.2rem; color:var(--ink); margin:1.6rem 0 .6rem; }
+
+/* ---------- Panels ---------- */
+.panel {
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius); padding:1.4rem 1.5rem;
+}
+.panel .section-title { font-size:1.25rem; }
+.checklist { list-style:none; padding:0; margin:.6rem 0 0; }
+.checklist li { position:relative; padding:.45rem 0 .45rem 1.7rem; color:var(--ink-2); font-size:.95rem; border-top:1px solid var(--line); }
+.checklist li:first-child { border-top:0; }
+.checklist li::before {
+  content:""; position:absolute; left:.1rem; top:.85rem; width:.55rem; height:.55rem;
+  border-radius:50% 0 50% 0; background:var(--leaf); transform:rotate(-20deg);
+}
+.empty {
+  border:1.5px dashed #b9cbbd; border-radius:var(--radius); padding:2.2rem 1.6rem;
+  text-align:center; background:rgba(255,255,255,.55);
+}
+.empty .glyph { font-size:2rem; margin-bottom:.4rem; }
+.empty .title { font-family:'Fraunces',serif; font-size:1.3rem; font-weight:600; color:var(--ink); }
+.empty p { color:var(--muted) !important; font-size:.93rem; margin:.4rem auto 0; max-width:340px; line-height:1.55; }
+
+/* ---------- Result card ---------- */
+.result {
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:1.5rem 1.6rem; display:flex; align-items:center; justify-content:space-between; gap:1.4rem;
+  border-left:5px solid var(--leaf);
+}
+.result.low { border-left-color:var(--amber); }
+.result-label { color:var(--muted); font-size:.85rem; font-weight:600; }
+.result-crop { color:var(--leaf); font-weight:600; font-size:.98rem; margin-top:.5rem; }
+.result.low .result-crop { color:var(--amber); }
+.result-name { font-family:'Fraunces',serif; color:var(--ink); font-size:1.85rem; font-weight:600; line-height:1.15; letter-spacing:-.015em; margin:.15rem 0 .5rem; }
+.ring {
+  --p:0; --c:var(--leaf);
+  flex:0 0 auto; width:104px; height:104px; border-radius:50%;
+  background:conic-gradient(var(--c) calc(var(--p) * 1%), #e4ebe5 0);
+  display:grid; place-items:center; position:relative;
+}
+.ring::before { content:""; position:absolute; inset:9px; background:var(--surface); border-radius:50%; }
+.ring span { position:relative; font-family:'Fraunces',serif; font-weight:600; font-size:1.3rem; color:var(--ink); }
+.result.low .ring { --c:var(--amber); }
+.confidence-note { color:var(--muted); font-size:.8rem; line-height:1.45; max-width:230px; }
+
+/* ---------- Top-3 bars ---------- */
+.bars { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:.4rem 1.3rem; }
+.bar-row { padding:.85rem 0; border-top:1px solid var(--line); }
+.bar-row:first-child { border-top:0; }
+.bar-top { display:flex; justify-content:space-between; gap:1rem; font-size:.93rem; margin-bottom:.45rem; }
+.bar-name { color:var(--ink); font-weight:500; }
+.bar-name small { color:var(--muted); font-weight:400; margin-left:.35rem; }
+.bar-val { color:var(--ink-2); font-variant-numeric:tabular-nums; font-weight:600; }
+.track { height:8px; border-radius:99px; background:#e8eee9; overflow:hidden; }
+.fill { height:100%; border-radius:99px; background:#9bc4aa; }
+.bar-row:first-child .fill { background:var(--leaf); }
+
+/* ---------- Streamlit widgets ---------- */
+[data-testid="stFileUploader"] { background:transparent; padding:0; margin-bottom:1rem; }
+[data-testid="stFileUploader"] section {
+  background:var(--surface) !important; border:1.5px dashed #a8c3ae !important;
+  border-radius:var(--radius) !important; padding:1.3rem !important;
+}
+[data-testid="stFileUploader"] section:hover { border-color:var(--leaf) !important; }
+[data-testid="stFileUploader"] small, [data-testid="stFileUploader"] span { color:var(--ink-2) !important; }
+[data-testid="stFileUploader"] button { border-radius:10px; }
+.stButton>button, .stDownloadButton>button {
+  border-radius:11px; font-weight:600; border:1px solid var(--ink);
+  background:var(--ink); color:#fff; padding:.6rem 1rem; transition:background .15s;
+}
+.stButton>button:hover, .stDownloadButton>button:hover { background:var(--leaf); border-color:var(--leaf); color:#fff; }
+.stButton>button:focus-visible, .stDownloadButton>button:focus-visible { outline:3px solid #8fd0a9; outline-offset:2px; }
+[data-testid="stImage"] img { border-radius:var(--radius); border:1px solid var(--line); }
+[data-testid="stImage"] [data-testid="stImageCaption"], [data-testid="stCaptionContainer"] { color:var(--muted); }
+[data-testid="stAlert"] { border-radius:var(--radius); }
+[data-testid="stMetric"] {
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:1.1rem 1.3rem;
+}
+[data-testid="stMetricLabel"] p { color:var(--muted) !important; font-weight:500; }
+[data-testid="stMetricValue"] { font-family:'Fraunces',serif; font-weight:600; color:var(--ink); }
+
 @media (max-width: 760px) {
   .block-container { padding:1rem 1rem 2rem; }
-  .hero { padding:1.5rem 1.25rem; border-radius:20px; }
-  .hero h1 { font-size:2.1rem; }
-  .hero p { font-size:.98rem; }
+  .masthead { padding:1.7rem 1.4rem; border-radius:18px; }
+  .result { flex-direction:column-reverse; align-items:flex-start; }
 }
-[data-testid="stFileUploader"] { background:white; border:1px dashed #a9c9b2; border-radius:16px; padding:.65rem; }
-hr { border-color:#e4eee6; }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
 </style>
 """, unsafe_allow_html=True)
+
+
+def split_label(raw):
+    """Display-only: turn 'Tomato___Late_blight' into ('Tomato', 'Late blight')."""
+    if "___" in raw:
+        crop, condition = raw.split("___", 1)
+    else:
+        crop, condition = "", raw
+    clean = lambda s: html.escape(s.replace("_", " ").replace("  ", " ").strip())
+    return clean(crop), clean(condition)
+
 
 @st.cache_resource(show_spinner="Downloading the trained model…")
 def ensure_model():
@@ -195,12 +317,12 @@ with st.sidebar:
     st.caption("Research prototype · Not a medical or agronomic diagnosis")
 
 st.markdown("""
-<div class="hero">
-  <div class="eyebrow">AI-powered crop screening</div>
-  <h1>A clearer picture of<br>plant health.</h1>
-  <p>Upload a leaf photo to get a model prediction, confidence score, and optional visual explanation. Designed as a research prototype for early plant-disease screening.</p>
-  <div class="pill">EfficientNetB0&nbsp; · &nbsp;38 classes&nbsp; · &nbsp;Image classification</div>
-</div>
+<div class="masthead"><div class="masthead-inner">
+<div class="brand"><span class="brand-mark">🌿</span>LeafLens</div>
+<h1>A clearer picture of plant health.</h1>
+<p>Upload a leaf photo to get a model prediction, confidence score, and optional visual explanation. Designed as a research prototype for early plant-disease screening.</p>
+<div class="facts"><span class="fact">EfficientNetB0</span><span class="fact">38 classes</span><span class="fact">Image classification</span></div>
+</div></div>
 """, unsafe_allow_html=True)
 
 left, right = st.columns([1.05, .95], gap="large")
@@ -217,7 +339,7 @@ with left:
             original_image = None
     else:
         original_image = None
-        st.markdown('<div class="panel"><div class="section-title">Before you upload</div><p class="subtle">• Photograph one leaf in focus<br>• Avoid heavy shadows and motion blur<br>• Keep the leaf large in the frame<br>• Use the result as a screening aid, not a final diagnosis</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="panel"><div class="section-title">Before you upload</div><ul class="checklist"><li>Photograph one leaf in focus</li><li>Avoid heavy shadows and motion blur</li><li>Keep the leaf large in the frame</li><li>Use the result as a screening aid, not a final diagnosis</li></ul></div>', unsafe_allow_html=True)
 
 with right:
     st.markdown('<div class="section-title">Analysis results</div>', unsafe_allow_html=True)
@@ -238,18 +360,34 @@ with right:
         top_indices = np.argsort(probabilities)[::-1][:3]
         best_index = int(top_indices[0])
         confidence = float(probabilities[best_index])
-        st.markdown('<div class="panel">', unsafe_allow_html=True)
-        st.markdown('<div class="result-label">Top prediction</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="result-name">{class_names[best_index]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="confidence">{confidence * 100:.1f}%</div><div class="small-note">Model confidence score — not a guarantee of correctness.</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        crop, condition = split_label(class_names[best_index])
+        low_class = " low" if confidence < 0.50 else ""
+        crop_html = f'<div class="result-crop">{crop}</div>' if crop else ""
+        st.markdown(
+            f'<div class="result{low_class}"><div>'
+            f'<div class="result-label">Top prediction</div>{crop_html}'
+            f'<div class="result-name">{condition}</div>'
+            f'<div class="confidence-note">Model confidence score — not a guarantee of correctness.</div>'
+            f'</div><div class="ring" style="--p:{confidence * 100:.1f}"><span>{confidence * 100:.1f}%</span></div></div>',
+            unsafe_allow_html=True,
+        )
         if confidence < 0.50:
             st.warning("Low confidence. The image may be ambiguous or outside the model's training distribution. Do not rely on this prediction alone.")
-        st.markdown("#### Top 3 model predictions")
+        st.markdown('<div class="sub-heading">Top 3 model predictions</div>', unsafe_allow_html=True)
         chart_data = pd.DataFrame({"Class": [class_names[int(i)] for i in top_indices], "Score": [float(probabilities[int(i)]) for i in top_indices]})
-        st.bar_chart(chart_data.set_index("Class"), horizontal=True)
+        rows = ""
+        for i in top_indices:
+            c, d = split_label(class_names[int(i)])
+            score = float(probabilities[int(i)])
+            tag = f"<small>{c}</small>" if c else ""
+            rows += (
+                f'<div class="bar-row"><div class="bar-top"><span class="bar-name">{d}{tag}</span>'
+                f'<span class="bar-val">{score * 100:.1f}%</span></div>'
+                f'<div class="track"><div class="fill" style="width:{max(score * 100, 0.8):.1f}%"></div></div></div>'
+            )
+        st.markdown(f'<div class="bars">{rows}</div>', unsafe_allow_html=True)
         if show_gradcam:
-            st.markdown("#### Visual explanation")
+            st.markdown('<div class="sub-heading">Visual explanation</div>', unsafe_allow_html=True)
             try:
                 overlay = gradcam_overlay(model, image_array, best_index)
                 st.image(overlay, caption="Grad-CAM overlay: highlighted regions influenced the prediction. This is an explanation aid, not proof that the model is correct.", use_container_width=True)
@@ -257,16 +395,16 @@ with right:
                 st.info(f"Grad-CAM is unavailable for this model configuration. Prediction is still available. ({str(exc)[:140]})")
         st.download_button("Download prediction summary (CSV)", data=chart_data.to_csv(index=False).encode("utf-8"), file_name="plant_disease_prediction.csv", mime="text/csv", use_container_width=True)
     else:
-        st.markdown('<div class="panel"><div class="result-label">Waiting for image</div><div class="result-name">Your results will appear here</div><p class="subtle">The app returns the three highest-scoring classes once an image is uploaded.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="empty"><div class="glyph">🍃</div><div class="title">Your results will appear here</div><p>The app returns the three highest-scoring classes once an image is uploaded.</p></div>', unsafe_allow_html=True)
 
 st.divider()
 metric = metadata.get("metrics", {}).get("test", {})
 if metric:
-    st.markdown("### Model evaluation snapshot")
+    st.markdown('<div class="section-title">Model evaluation snapshot</div>', unsafe_allow_html=True)
     st.markdown('<p class="subtle">Reported metrics from the saved experiment metadata on the in-domain PlantVillage test split. These are not a promise of accuracy on user-uploaded field photos.</p>', unsafe_allow_html=True)
     m1, m2, m3 = st.columns(3)
     m1.metric("Test accuracy", f"{metric.get('accuracy', 0) * 100:.2f}%")
     m2.metric("Test macro precision", f"{metric.get('precision', 0) * 100:.2f}%")
     m3.metric("Test macro F1", f"{metric.get('f1', 0) * 100:.2f}%")
 
-st.markdown('<p class="small-note">LeafLens is an educational research prototype. The classifier recognises only the listed crop/disease classes and may perform less reliably on real-world field photographs. Confirm important decisions with a qualified agricultural specialist.</p>', unsafe_allow_html=True)
+st.markdown('<p class="small-note" style="margin-top:1.4rem">LeafLens is an educational research prototype. The classifier recognises only the listed crop/disease classes and may perform less reliably on real-world field photographs. Confirm important decisions with a qualified agricultural specialist.</p>', unsafe_allow_html=True)
